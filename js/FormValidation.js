@@ -56,17 +56,23 @@ function checkDate() {
     }
 }
 
+
 const save = (event) => {
     event.preventDefault();
     event.stopPropagation();
     try {
         // let empData = setEmployeePayrollObject();
         // createAndUpdateStorage(empData);
+
         setEmployeePayrollObject();
-        createAndUpdateStorage();
-        alert("Data Stored With Name "+employPayrollObject._name);
-        resetForm();
-        window.location.replace(site_properties.home_page)
+        if(site_properties.use_local_storage.match("true")){
+            createAndUpdateStorage();
+            alert("Data Stored With Name "+employPayrollObject._name);
+            resetForm();
+            window.location.replace(site_properties.home_page)
+        }else
+            createOrUpdateEmployeeInJsonServer();
+
     } catch (e) {
         console.log(e)
         return;
@@ -110,6 +116,28 @@ const setEmployeePayrollObject = () => {
     // employeePayrollData.id = employPayrollObject.id;
     // return employeePayrollData;
 }
+
+function createOrUpdateEmployeeInJsonServer() {
+    let url=site_properties.server_url;
+    let methodCall="POST";
+    let message="Data Store with name ";
+    if(isUpdate){
+        methodCall="PUT";
+        url=url+employPayrollObject.id.toString();
+         message="Data Updated with name ";
+    }
+    makeServiceCall(methodCall,url,true,employPayrollObject)
+        .then(response=>{
+            alert(message +employPayrollObject._name)
+            resetForm();
+            window.location.replace(site_properties.home_page);
+        })
+        .catch(error=>{
+            console.log("inside error")
+            throw error
+        });
+}
+
 
 const getInputValueId = (id) => {
     let value = document.querySelector(id).value;
