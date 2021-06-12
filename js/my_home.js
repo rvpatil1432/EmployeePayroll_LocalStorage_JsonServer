@@ -1,14 +1,40 @@
 let employeePayrollList;
+
 window.addEventListener('DOMContentLoaded', (event) => {
-    console.log("Called Event");
-    employeePayrollList = getDateFromLocalStorage();
+    if(site_properties.use_local_storage.match("true")){
+        employeePayrollList = getDataFromLocalStorage();
+    }else
+        getPayrollDataFromServer();
+})
+
+function processEmployeePayrollDataResponse() {
+    //Create another method for response because this should implement after we get response from server
     document.querySelector('.emp-count').textContent = employeePayrollList.length;
     createInnerHtml();
     localStorage.removeItem("edit-emp");
-})
+}
+
+const getDataFromLocalStorage = () => {
+    employeePayrollList= localStorage.getItem('EmployeePayrollList') ?
+        JSON.parse(localStorage.getItem('EmployeePayrollList')) : [];
+    processEmployeePayrollDataResponse();
+}
+
+const getPayrollDataFromServer=()=> {
+    makeServiceCall("GET", site_properties.server_url, true)
+        .then(response =>{
+            employeePayrollList=JSON.parse(response);
+            processEmployeePayrollDataResponse();
+        })
+        .catch(error=>{
+            console.log("Get Error Status : "+JSON.stringify(error));
+            employeePayrollList=[];
+            processEmployeePayrollDataResponse();
+        })
+}
+
 
 const createInnerHtml = () => {
-    console.log("Loading inner html");
     const headerHtml = "<tr><th></th><th>Name</th><th>Gender</th>" +
         "<th>Department</th><th>Salary</th><th>Start Date</th><th>Actions</th></tr>";
     let innerHtml = `${headerHtml}`;
@@ -39,10 +65,6 @@ const getDepartmentHtml = (data) => {
     return deptHtml;
 }
 
-const getDateFromLocalStorage = () => {
-    return localStorage.getItem('EmployeePayrollList') ?
-        JSON.parse(localStorage.getItem('EmployeePayrollList')) : [];
-}
 
 const remove = (data) => {
 
