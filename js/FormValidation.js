@@ -57,6 +57,12 @@ function checkDate() {
 }
 
 
+function redirect() {
+    console.log("redirect")
+    resetForm();
+    window.location.replace(site_properties.home_page)
+}
+
 const save = (event) => {
     event.preventDefault();
     event.stopPropagation();
@@ -68,10 +74,11 @@ const save = (event) => {
         if(site_properties.use_local_storage.match("true")){
             createAndUpdateStorage();
             alert("Data Stored With Name "+employPayrollObject._name);
-            resetForm();
-            window.location.replace(site_properties.home_page)
+            redirect();
         }else
             createOrUpdateEmployeeInJsonServer();
+            // alert("Data Updated With Name "+employPayrollObject._name);
+            // redirect();
 
     } catch (e) {
         console.log(e)
@@ -81,8 +88,7 @@ const save = (event) => {
 
 const setEmployeePayrollObject = () => {
 
-    //Here we directly store values in employPayrollObject
-
+    //Here we are directly store values in employPayrollObject
     if(!isUpdate && site_properties.use_local_storage.match("true")){
         employPayrollObject.id=createNewEmpId();
     }
@@ -128,16 +134,15 @@ function createOrUpdateEmployeeInJsonServer() {
     }
     makeServiceCall(methodCall,url,true,employPayrollObject)
         .then(response=>{
-            alert(message +employPayrollObject._name)
-            resetForm();
-            window.location.replace(site_properties.home_page);
+            //  return;
+             alert(message +employPayrollObject._name)
+             redirect();
         })
         .catch(error=>{
             console.log("inside error")
             throw error
         });
 }
-
 
 const getInputValueId = (id) => {
     let value = document.querySelector(id).value;
@@ -206,6 +211,7 @@ const createAndUpdateStorage = () => {
 }
 
 const resetForm = () => {
+    console.log("resetForm")
     setValue('#name', '');
     unsetSelectedValues('[name=profile]');
     unsetSelectedValues('[name=gender]');

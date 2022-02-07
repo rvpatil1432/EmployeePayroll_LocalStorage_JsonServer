@@ -2,7 +2,7 @@ let employeePayrollList;
 
 window.addEventListener('DOMContentLoaded', (event) => {
     if(site_properties.use_local_storage.match("true")){
-        employeePayrollList = getDataFromLocalStorage();
+         getDataFromLocalStorage();
     }else
         getPayrollDataFromServer();
 })
@@ -21,6 +21,7 @@ const getDataFromLocalStorage = () => {
 }
 
 const getPayrollDataFromServer=()=> {
+
     makeServiceCall("GET", site_properties.server_url, true)
         .then(response =>{
             employeePayrollList=JSON.parse(response);
@@ -67,19 +68,34 @@ const getDepartmentHtml = (data) => {
 
 
 const remove = (data) => {
-
+  
     let employeeData = employeePayrollList.find(empData => empData.id == data.id);
     if (!employeeData) {
         return;
     }
     const index = employeePayrollList.map(empData => empData.id).indexOf(employeeData.id);
-    employeePayrollList.splice(index, 1);
-    localStorage.setItem('EmployeePayrollList', JSON.stringify(employeePayrollList));
-    document.querySelector('.emp-count').textContent = employeePayrollList.length;
-    createInnerHtml();
+    if(site_properties.use_local_storage.match("true")){
+        employeePayrollList.splice(index, 1);
+        localStorage.setItem('EmployeePayrollList', JSON.stringify(employeePayrollList));
+        document.querySelector('.emp-count').textContent = employeePayrollList.length;
+        createInnerHtml();
+    }else {
+        const deleteUrl=site_properties.server_url+employeeData.id.toString();
+        makeServiceCall("DELETE",deleteUrl,true)
+            .then(response=>{
+                console.log(response)
+                document.querySelector(".emp-count").textContent=employeePayrollList.length;
+                createInnerHtml();
+            })
+            .catch(error=>{
+                alert("Error while deleting "+error)
+            })
+    }
+
 }
 
 const update = (data) => {
+
     let employeeData = employeePayrollList.find(empData => empData.id == data.id);
     if (!employeeData) {
         return;
